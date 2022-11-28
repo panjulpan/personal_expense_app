@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'models/transaction.dart';
+import './models/transaction.dart';
+import './widgets/new_transaction.dart';
+import './widgets/transaction_list.dart';
 
 void main() => runApp(MyApp());
 
@@ -14,8 +15,13 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  final List<Transaction> transaction = [
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  final List<Transaction> _userTransaction = [
     Transaction(
       id: '1',
       title: 'New Bag',
@@ -30,16 +36,46 @@ class MyHomePage extends StatelessWidget {
     ),
   ];
 
-  String titleInput;
-  String amount;
+  void _addingNewTransaction(String transTitle, double transAmount) {
+    final newTrans = Transaction(
+      id: DateTime.now().toString(),
+      title: transTitle,
+      amount: transAmount,
+      date: DateTime.now(),
+    );
+
+    setState(() {
+      _userTransaction.add(newTrans);
+    });
+  }
+
+  void _openInputModal(BuildContext ctx) {
+    showModalBottomSheet(
+      context: ctx,
+      builder: (_) {
+        return GestureDetector(
+          child: NewTransaction(_addingNewTransaction),
+          onTap: () {},
+          behavior: HitTestBehavior.opaque,
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Flutter App'),
-        ),
-        body: Column(
+      appBar: AppBar(
+        title: Text('Flutter App'),
+        actions: <Widget>[
+          IconButton(
+            onPressed: () => _openInputModal(context),
+            icon: Icon(Icons.add),
+          )
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
           // mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: <Widget>[
@@ -51,85 +87,15 @@ class MyHomePage extends StatelessWidget {
                 color: Colors.blue,
               ),
             ),
-            Card(
-              elevation: 2,
-              child: Container(
-                padding: EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: <Widget>[
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Enter title',
-                      ),
-                    ),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: 'Enter amount',
-                      ),
-                    ),
-                    FlatButton(
-                      onPressed: () {},
-                      child: Text('Add Transaction'),
-                      textColor: Colors.purple,
-                    )
-                  ],
-                ),
-              ),
-            ),
-            Column(
-              children: transaction
-                  .map(
-                    (e) => Card(
-                      child: Row(
-                        children: <Widget>[
-                          Container(
-                            margin: EdgeInsets.symmetric(
-                              vertical: 10,
-                              horizontal: 15,
-                            ),
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.purple,
-                                width: 2,
-                              ),
-                            ),
-                            child: Text(
-                              '\$ ${e.amount}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                color: Colors.purple,
-                              ),
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                e.title,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              Text(
-                                DateFormat.yMMMd().format(e.date),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              )
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
+            TransactionList(_userTransaction),
           ],
-        ));
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () => _openInputModal(context),
+      ),
+    );
   }
 }
